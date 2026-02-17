@@ -150,4 +150,18 @@ install: archives
 clean:
 	rm -rf $(BUILDDIR) $(CROSS_FILE) $(CONFIGURED_MARKER)
 
-.PHONY: all configure build archives install clean
+test: archives
+	@echo "Running numpy tests..."
+	@test -d "$(NUMPY_LIB_DIR)" && echo "  OK: numpy lib dir exists" || (echo "  FAIL: numpy lib dir not found" && exit 1)
+	@test -f "$(NUMPY_LIB_DIR)/lib_multiarray_umath_all.a" && echo "  OK: lib_multiarray_umath_all.a exists" || (echo "  FAIL: lib_multiarray_umath_all.a not found" && exit 1)
+	@test -f "$(NUMPY_LIB_DIR)/libnpymath.a" && echo "  OK: libnpymath.a exists" || (echo "  FAIL: libnpymath.a not found" && exit 1)
+	@test -f "$(NUMPY_LIB_DIR)/libnpyrandom.a" && echo "  OK: libnpyrandom.a exists" || (echo "  FAIL: libnpyrandom.a not found" && exit 1)
+	@ARCHIVE_COUNT=$$(ls "$(NUMPY_LIB_DIR)/"*.a 2>/dev/null | wc -l); \
+		if [ "$$ARCHIVE_COUNT" -ge 15 ]; then \
+			echo "  OK: $$ARCHIVE_COUNT numpy archives found (expected >= 15)"; \
+		else \
+			echo "  FAIL: only $$ARCHIVE_COUNT archives found (expected >= 15)"; exit 1; \
+		fi
+	@echo "\t\t*** numpy tests PASSED ***"
+
+.PHONY: all configure build archives install clean test
