@@ -86,6 +86,12 @@ jobs:
           NANVIX_HOME=$(find nanvix-artifacts/extracted -maxdepth 2 -type d -name "bin" -exec dirname {} \; | head -1)
           echo "NANVIX_HOME=$NANVIX_HOME" >> "$GITHUB_ENV"
 
+      - name: Install Host Build Dependencies
+        run: |
+          apt-get update -qq && apt-get install -y -qq python3-pip python3-dev cython3 > /dev/null 2>&1 || true
+          pip3 install --break-system-packages cython meson meson-python 2>&1 || pip3 install cython meson meson-python 2>&1 || true
+          which cython3 || which cython || echo "WARNING: cython not found"
+
       - name: Install CPython Headers
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -97,8 +103,9 @@ jobs:
           HEADERS_INSTALLED=false
           if curl -fsSL -o "cpython-dep/${CPYTHON_ARTIFACT}" "$CPYTHON_URL" 2>/dev/null; then
             tar -xjf "cpython-dep/${CPYTHON_ARTIFACT}" -C cpython-dep
-            CPYTHON_DIR=$(find cpython-dep -maxdepth 1 -type d \( -name "sysroot" -o -name "cpython-*" \) | head -1)
+            CPYTHON_DIR=$(find cpython-dep -mindepth 1 -maxdepth 1 -type d \( -name "sysroot" -o -name "cpython-*" \) | head -1)
             if [[ -n "$CPYTHON_DIR" ]] && [[ -d "$CPYTHON_DIR/include" ]]; then
+              mkdir -p "$NANVIX_HOME/include"
               cp -rf "$CPYTHON_DIR"/include/* "$NANVIX_HOME/include/" 2>/dev/null || true
               HEADERS_INSTALLED=true
               echo "CPython headers installed from release"
