@@ -11,7 +11,7 @@ on:
       - nanvix/**
   workflow_dispatch:
   repository_dispatch:
-    types: [nanvix-minor-release, nanvix-major-release, cpython-release]
+    types: [nanvix-minor-release, nanvix-major-release, cpython-release, openblas-release]
 
 permissions:
   contents: write
@@ -216,9 +216,25 @@ jobs:
           - Commit: [${NANVIX_SHA_FULL}](https://github.com/nanvix/nanvix/commit/${NANVIX_SHA_FULL})
 
           **Dependencies:**
-          - CPython headers (nanvix/cpython)" \
+          - CPython headers (nanvix/cpython)
+          - OpenBLAS (nanvix/OpenBLAS)" \
             --latest \
             release-assets/*.tar.bz2
+
+      # Trigger dependent workflows (nanvix-python integration)
+      - name: Trigger Dependent Workflows
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
+        run: |
+          RELEASE_TAG="${GITHUB_SHA::7}-nanvix-${NANVIX_SHA}"
+          echo "Triggering nanvix-python workflow..."
+          gh api repos/nanvix/nanvix-python/dispatches \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -f event_type="numpy-release" \
+            -f "client_payload[nanvix_sha]=${NANVIX_SHA}" \
+            -f "client_payload[numpy_tag]=${RELEASE_TAG}" || echo "::warning::Failed to trigger nanvix-python workflow"
 
   report-failure:
     needs: [build]
