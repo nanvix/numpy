@@ -11,7 +11,7 @@ on:
       - nanvix/**
   workflow_dispatch:
   repository_dispatch:
-    types: [nanvix-minor-release, nanvix-major-release, cpython-release, openblas-release]
+    types: [nanvix-minor-release, nanvix-major-release, cpython-release]
 
 permissions:
   contents: write
