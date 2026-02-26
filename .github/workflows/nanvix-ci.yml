@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Download Nanvix Release Info
         id: extract
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           curl -fsSL https://raw.githubusercontent.com/nanvix/nanvix/refs/heads/dev/scripts/get-nanvix.sh | bash -s -- --force nanvix-artifacts
@@ -72,6 +74,8 @@ jobs:
           submodules: recursive
 
       - name: Download and Extract Nanvix Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           curl -fsSL https://raw.githubusercontent.com/nanvix/nanvix/refs/heads/dev/scripts/get-nanvix.sh | bash -s -- --force nanvix-artifacts
