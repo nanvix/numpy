@@ -122,6 +122,23 @@ jobs:
             fi
           fi
 
+          # Fallback: try single-process artifact (headers are identical across process modes)
+          if [[ "$HEADERS_INSTALLED" != "true" ]]; then
+            echo "::warning::CPython ${{ matrix.process-mode }} release not available, trying single-process fallback"
+            FALLBACK_ARTIFACT="cpython-${{ matrix.platform }}-single-process.tar.bz2"
+            FALLBACK_URL="https://github.com/nanvix/cpython/releases/latest/download/${FALLBACK_ARTIFACT}"
+            if curl -fsSL -o "cpython-dep/${FALLBACK_ARTIFACT}" "$FALLBACK_URL" 2>/dev/null; then
+              tar -xjf "cpython-dep/${FALLBACK_ARTIFACT}" -C cpython-dep
+              CPYTHON_DIR=$(find cpython-dep -mindepth 1 -maxdepth 1 -type d \( -name "sysroot" -o -name "cpython-*" \) | head -1)
+              if [[ -n "$CPYTHON_DIR" ]] && [[ -d "$CPYTHON_DIR/include" ]]; then
+                mkdir -p "$NANVIX_HOME/include"
+                cp -rf "$CPYTHON_DIR"/include/* "$NANVIX_HOME/include/" 2>/dev/null || true
+                HEADERS_INSTALLED=true
+                echo "CPython headers installed from single-process fallback"
+              fi
+            fi
+          fi
+
           # Fallback: use CPython headers from the toolchain container
           if [[ "$HEADERS_INSTALLED" != "true" ]]; then
             echo "::warning::CPython release not available, using toolchain Python headers"
