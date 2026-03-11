@@ -107,13 +107,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          CPYTHON_ARTIFACT="cpython-${{ matrix.platform }}-standalone.tar.bz2"
+          CPYTHON_ARTIFACT="cpython-microvm-standalone.tar.bz2"
           mkdir -p cpython-dep
-          ASSET_URL=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
-            "https://api.github.com/repos/nanvix/cpython/releases/latest" | \
-            jq -r ".assets[] | select(.name == \"${CPYTHON_ARTIFACT}\") | .url")
-          curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/octet-stream" \
-            -o "cpython-dep/${CPYTHON_ARTIFACT}" "$ASSET_URL"
+          curl -fsSL -o "cpython-dep/${CPYTHON_ARTIFACT}" \
+            "https://github.com/nanvix/cpython/releases/latest/download/${CPYTHON_ARTIFACT}"
           tar -xjf "cpython-dep/${CPYTHON_ARTIFACT}" -C cpython-dep
           CPYTHON_DIR=$(find cpython-dep -mindepth 1 -maxdepth 1 -type d \( -name "sysroot" -o -name "cpython-*" \) | head -1)
           if [[ -n "$CPYTHON_DIR" ]] && [[ -d "$CPYTHON_DIR/include" ]]; then
