@@ -55,15 +55,20 @@ jobs:
         include:
           - platform: hyperlight
             process-mode: multi-process
+            memory: 128mb
           - platform: hyperlight
             process-mode: single-process
+            memory: 128mb
           - platform: microvm
             process-mode: single-process
+            memory: 128mb
           - platform: microvm
             process-mode: multi-process
+            memory: 128mb
           - platform: microvm
             process-mode: standalone
-    name: ${{ matrix.platform }}-${{ matrix.process-mode }}
+            memory: 128mb
+    name: ${{ matrix.platform }}-${{ matrix.process-mode }}-${{ matrix.memory }}
     container:
       image: nanvix/toolchain:latest-minimal
       options: --device /dev/kvm
@@ -85,7 +90,7 @@ jobs:
         run: |
           set -euo pipefail
           curl -fsSL https://raw.githubusercontent.com/nanvix/nanvix/refs/heads/dev/scripts/get-nanvix.sh | bash -s -- --force nanvix-artifacts
-          ARTIFACT_PATTERN="${{ matrix.platform }}.*${{ matrix.process-mode }}.*\.tar\.bz2"
+          ARTIFACT_PATTERN="${{ matrix.platform }}.*${{ matrix.process-mode }}.*${{ matrix.memory }}.*\.tar\.bz2"
           ARTIFACT_FILE=$(find nanvix-artifacts -maxdepth 1 -type f -name "*.tar.bz2" | grep -E "$ARTIFACT_PATTERN" | head -1)
           if [[ -z "$ARTIFACT_FILE" ]]; then
             echo "::error::No ${{ matrix.platform }} ${{ matrix.process-mode }} artifact found"
@@ -107,7 +112,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          CPYTHON_ARTIFACT="cpython-microvm-standalone.tar.bz2"
+          CPYTHON_ARTIFACT="cpython-microvm-standalone-128mb.tar.bz2"
           mkdir -p cpython-dep
           curl -fsSL -o "cpython-dep/${CPYTHON_ARTIFACT}" \
             "https://github.com/nanvix/cpython/releases/latest/download/${CPYTHON_ARTIFACT}"
@@ -143,7 +148,7 @@ jobs:
       - name: Package Artifacts
         run: |
           set -euo pipefail
-          ARTIFACT_NAME="numpy-${{ matrix.platform }}-${{ matrix.process-mode }}"
+          ARTIFACT_NAME="numpy-${{ matrix.platform }}-${{ matrix.process-mode }}-${{ matrix.memory }}"
           DIST_DIR="dist/${ARTIFACT_NAME}"
           mkdir -p "${DIST_DIR}/lib/numpy"
           if [ -d "$NANVIX_HOME/lib/numpy" ]; then
@@ -158,7 +163,7 @@ jobs:
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: numpy-${{ matrix.platform }}-${{ matrix.process-mode }}
+          name: numpy-${{ matrix.platform }}-${{ matrix.process-mode }}-${{ matrix.memory }}
           path: ${{ env.ARTIFACT_TARBALL }}
           retention-days: 7
 
