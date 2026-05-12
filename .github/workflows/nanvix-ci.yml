@@ -57,7 +57,7 @@ jobs:
         memory: [128mb]
     name: ${{ matrix.platform }}-${{ matrix.process-mode }}-${{ matrix.memory }}
     container:
-      image: nanvix/toolchain:latest-minimal
+      image: ghcr.io/nanvix/toolchain-gcc:sha-34a3641
       options: --device /dev/kvm
     defaults:
       run:
