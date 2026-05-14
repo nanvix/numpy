@@ -1,0 +1,10 @@
+[package]
+name = "numpy"
+version = "1.26.4"
+nanvix-version = "0.12.552"
+
+[builds]
+[builds.matrix]
+platforms = ["microvm"]
+modes = ["standalone"]
+memory = ["256mb"]
